@@ -1,9 +1,6 @@
 const express = require("express");
-const bodyParser = require("body-parser");
 const router = express.Router();
 const { CartItem } = require("../models/cart.model");
-
-router.use(bodyParser.json());
 
 router.param("userId", async (req, res, next, userId) => {
   try {
