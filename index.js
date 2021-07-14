@@ -1,6 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+require("dotenv").config();
 
 const app = express();
 app.use(bodyParser.json({ urlExtended: true }));
@@ -11,15 +12,19 @@ const cartRouter = require("./routes/cart.router");
 const wishlistRouter = require("./routes/wishlist.router");
 
 const { initializeDBConnection } = require("./db/db.connect.js");
+const authVerify = require("./middleware/authVerify.js");
 initializeDBConnection();
 
+app.use("/user", userRouter);
 app.use("/products", productRouter);
-app.use("/users", userRouter);
-app.use("/cart", cartRouter);
-app.use("/wishlist", wishlistRouter);
+app.use("/cart", authVerify, cartRouter);
+app.use("/wishlist", authVerify, wishlistRouter);
+
 app.get("/", (req, res) => {
   res.json({ message: "WEl-Come" });
 });
+
+// 404
 app.use((req, res) => {
   res.status(404).json({
     success: false,

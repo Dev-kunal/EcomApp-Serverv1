@@ -2,39 +2,56 @@ const express = require("express");
 const router = express.Router();
 const { CartItem } = require("../models/cart.model");
 
-router.param("userId", async (req, res, next, userId) => {
+router.route("/").get(async (req, res) => {
   try {
-    const cartItems = await CartItem.find({ userId: userId }).populate({
+    const cart = await CartItem.find({ userId: req.user.userId }).populate({
       path: "productId",
+      select: "name price oldPrice ratings images inStock fastDelivery",
       model: "Product",
     });
-    if (!cartItems) {
-      res.status(400).json({ success: false, message: "Cart not found" });
-    }
-    req.cart = cartItems;
-    next();
-  } catch (err) {
-    res.status(400).json({ success: false, message: err.message });
+    res.json({ success: true, cart });
+  } catch (error) {
+    console.log(error);
   }
 });
 
+// add to cart
 router.route("/").post(async (req, res) => {
   try {
-    let cartItem = req.body;
-    const NewCartItem = await new CartItem(cartItem);
-    const savedCartItem = await NewCartItem.save();
-    res.json({ success: true, savedCartItem });
+    const filter = {
+      $and: [{ productId: req.body.productId }, { userId: req.user.userId }],
+    };
+    const findItem = await CartItem.findOne(filter);
+    if (findItem) {
+      res.json({ success: false, message: "Product already in Cart" });
+    }
+    console.log("userId from ad to cart", req.user.userId);
+    // let cartItem = req.body;
+    newCartItem = await CartItem.create({
+      productId: req.body.productId,
+      quantity: 1,
+      userId: req.user.userId,
+    });
+    newCartItem = await newCartItem
+      .populate({
+        path: "productId",
+        select: "name price oldPrice ratings images inStock fastDelivery",
+        model: "Product",
+      })
+      .execPopulate();
+
+    res.json({ success: true, newCartItem });
   } catch (err) {
+    if (err.code === 11000) {
+      res.json({ success: false, message: "Product is already in cart" });
+    }
     res.json({ sucess: false, message: err.message });
   }
 });
-router.route("/:userId").get((req, res) => {
-  let { cart } = req;
-  res.json({ success: true, cart: cart });
-});
+
 router.route("/update").post(async (req, res) => {
   try {
-    let { userId, productId, updateType } = req.body;
+    let { productId, updateType } = req.body;
     let updateTerm;
     if (updateType === "INC") {
       updateTerm = 1;
@@ -42,29 +59,39 @@ router.route("/update").post(async (req, res) => {
     if (updateType === "DEC") {
       updateTerm = -1;
     }
-    const obj = {
-      $and: [{ productId: productId }, { userId: userId }],
+    const filter = {
+      $and: [{ productId }, { userId: req.user.userId }],
     };
-    const productToUpdate = await CartItem.findOneAndUpdate(
-      obj,
+    // console.log("========>>>", filter);
+    const result = await CartItem.findOne({ productId });
+    // console.log("result", result);
+    const updatedProduct = await CartItem.findOneAndUpdate(
+      filter,
       { $inc: { quantity: updateTerm } },
       { new: true }
-    );
-    res.json({ success: true, productToUpdate: productToUpdate });
+    ).populate({
+      path: "productId",
+      select:
+        "name price oldPrice ratings images inStock fastDelivery,quantity",
+      model: "Product",
+    });
+
+    // console.log("fuck..", updatedProduct);
+    res.json({ success: true, updatedProduct });
   } catch (err) {
-    res.josn({ success: false, message: err.message });
+    res.json({ success: false, message: err.message });
   }
 });
 
-router.route("/delete").post(async (req, res) => {
+// remove from cart
+router.route("/remove").post(async (req, res) => {
   try {
-    let { productId, userId } = req.body;
-    const obj = {
-      $and: [{ productId: productId }, { userId: userId }],
+    let { productId } = req.body;
+    const filter = {
+      $and: [{ productId }, { userId: req.user.userId }],
     };
-    // console.log(obj)
-    const deleteCartItem = await CartItem.findOneAndDelete(obj);
-    res.json({ succes: true, deletedItem: deleteCartItem });
+    const removedCartItem = await CartItem.findOneAndDelete(filter);
+    res.json({ succes: true, removedCartItem });
   } catch (err) {
     res.json({ success: false, message: err.message });
   }
