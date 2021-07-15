@@ -25,7 +25,7 @@ router.route("/").get(async (req, res) => {
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: "unable to get products",
+      message: "Unable to get products",
       errorMessage: err.message,
     });
   }
