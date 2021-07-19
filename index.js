@@ -12,6 +12,7 @@ const productRouter = require("./routes/product.router.js");
 const userRouter = require("./routes/user.router");
 const cartRouter = require("./routes/cart.router");
 const wishlistRouter = require("./routes/wishlist.router");
+const paymentRouter = require("./routes/payment.router");
 
 const authVerify = require("./middleware/authVerify.js");
 
@@ -19,6 +20,7 @@ app.use("/user", userRouter);
 app.use("/products", productRouter);
 app.use("/cart", authVerify, cartRouter);
 app.use("/wishlist", authVerify, wishlistRouter);
+app.use("/payment", paymentRouter);
 
 app.get("/", (req, res) => {
   res.json({ message: "Ecom SeverV1" });
