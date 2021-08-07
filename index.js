@@ -20,10 +20,10 @@ app.use("/user", userRouter);
 app.use("/products", productRouter);
 app.use("/cart", authVerify, cartRouter);
 app.use("/wishlist", authVerify, wishlistRouter);
-app.use("/payment", paymentRouter);
+app.use("/payment", authVerify, paymentRouter);
 
 app.get("/", (req, res) => {
-  res.json({ message: "Ecom SeverV1" });
+  res.json({ success: true, message: "Ecom SeverV1" });
 });
 
 // 404
@@ -34,6 +34,6 @@ app.use((req, res) => {
   });
 });
 
-app.listen(process.env.PORT || 3000, () => {
+app.listen(process.env.PORT || 7000, () => {
   console.log("Server Started");
 });
