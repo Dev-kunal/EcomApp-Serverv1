@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
 const { Product } = require("../models/product.model");
-const { extend } = require("lodash");
 
 router.param("productId", async (req, res, next, productId) => {
   try {
@@ -21,7 +20,7 @@ router.param("productId", async (req, res, next, productId) => {
 router.route("/").get(async (req, res) => {
   try {
     const products = await Product.find({});
-    res.json({ success: true, products });
+    res.status(200).json({ success: true, products });
   } catch (err) {
     res.status(500).json({
       success: false,
@@ -31,7 +30,7 @@ router.route("/").get(async (req, res) => {
   }
 });
 
-router.route("/:productId").get((req, res) => {
+router.get("/:productId", (req, res) => {
   let { product } = req;
   product.__v = undefined;
   res.json({ success: true, product });
