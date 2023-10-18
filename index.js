@@ -39,5 +39,5 @@ app.get("/", (req, res) => {
 app.use(routeHandler);
 
 app.listen(process.env.PORT || 7000, () => {
-  console.log("Server Started");
+  console.log("Tech Store Server Started");
 });
